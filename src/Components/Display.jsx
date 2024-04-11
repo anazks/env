@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './display.css';
 import { dataRef } from '../Firebase';
 import Axios from '../Axios'
-
+import AxiosNew from '../Axios2'
 function Display() {
   const [temp, setTemp] = useState(null);
   const [hum, setHum] = useState(null);
@@ -10,7 +10,7 @@ function Display() {
   const [nh3, setNh3] = useState(null);
   const [co2, setCo] = useState(null);
   const [data, setData] = useState([]);
-
+  const [prediction,setPrediction] = useState(0)
   const [aq,setAQ] = useState('')
   useEffect(() => { 
     const fetchDataInterval = setInterval(() => {
@@ -73,13 +73,54 @@ function Display() {
     console.log('Predicted Air Quality:', airQuality);
     setAQ(airQuality)
   };
-
+  const interpretAQICategorys = (aqi) => {
+    if (aqi <= 50) return 'Good';
+    else if (aqi <= 100) return 'Fair';
+    else if (aqi <= 200) return 'Moderate';
+    else if (aqi <= 300) return 'Poor';
+    else if (aqi <= 400) return 'Very Poor';
+    else return 'Severe';
+  };
+  const handlePredictionDetails = () => {
+    Axios.get('/air_pollution?lat=9.9647781&lon=76.2940493&appid=9221cbdf8aaa131c1efc371f8403fca0')
+      .then((response) => {  
+        if (response && response.data) {
+          const aqi = response.data.list[0].main.aqi;
+          const predictedAirQuality = interpretAQICategorys(aqi);
+          console.log('Predicted Air Quality:', predictedAirQuality);
+          setPrediction(predictedAirQuality);
+        } else {
+          console.error("Invalid response received.");
+        }
+      })
+      .catch((error) => {
+        if (error.response) {
+          console.error("Error response received:", error.response.data);
+        } else if (error.request) {
+          console.error("No response received:", error.request);
+        } else {
+          console.error("Error in request:", error.message);
+        }
+      });
+  };
   return (
     
    <>
-   { aq ?<div className="aq">
-       <span style={{color:'red'}}>CURRENT AIR QUALITY</span> ===><b><i>{aq}!!</i></b>
-    </div> : '' }
+  <>
+  {aq ? (
+    <div className="aq">
+      <span style={{ color: 'red' }}>CURRENT AIR QUALITY</span> <b><i>{aq}!!</i></b>
+    </div>
+  ) : null}
+{
+  prediction ? (
+    <div className="prediction">
+      <span style={{ color: 'red' }}>PREDICTED AIR QUALITY</span> <b><i>{prediction}</i></b>
+    </div>
+  ) : null
+}
+</>
+
      <div className='main'>
          
          <div className="rate">
@@ -114,7 +155,9 @@ function Display() {
              <button>{data.o3}</button>
              <span>So2</span>
              <button>{data.so2}</button>
-             <button onClick={handlePrediction} style={{height:'100px',backgroundColor:'green',border:'none',height:'30px'}}>Predict</button>
+             <button onClick={handlePrediction} style={{height:'100px',backgroundColor:'green',border:'none',height:'30px',color:'white'}}>Check Now</button>
+             <button onClick={handlePredictionDetails} style={{height:'100px',backgroundColor:'yellow',border:'none',height:'30px'}}>Predict</button>
+
            </div> : null
          }
        </div>
