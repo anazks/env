@@ -11,13 +11,19 @@ function Display() {
   const [co2, setCo] = useState(null);
   const [data, setData] = useState([]);
   const [prediction,setPrediction] = useState(0)
+  const [Co2,setCo2] = useState(0)
+  const [co2Alert,setCo2Alert] = useState(false)
   const [aq,setAQ] = useState('')
-  useEffect(() => { 
+  
+  useEffect(() => {
+  
+    
     const fetchDataInterval = setInterval(() => {
       getDatafromDB();
+    
       Axios.get(`air_pollution?lat=9.9647781&lon=76.2940493&appid=9221cbdf8aaa131c1efc371f8403fca0`)
         .then((response) => {
-          console.log(response.data)
+          console.log(response.data,"air")
           setData(response.data.list[0].components)
         })
         .catch((error) => {
@@ -32,14 +38,27 @@ function Display() {
 
   const getDatafromDB = () => {
     try {
+      
+      
       dataRef.ref().child('test').on('value', (data) => {
         const getData = Object.values(data.val());
+        console.log(getData,"getData")
         setHum(getData[0]);
         setTemp(getData[2]);
         setVoc(getData[4]);
+        setCo2(getData[4]/10)
         setCo(getData[1]);
         setNh3(getData[3]);
+        //demo data to change C02 value change
+        if(Co2>0.3){
+          console.log("alert")
+            setCo2Alert(true)
+          }else{
+          console.log(" no alert")
+            setCo2Alert(false)
+          }
       });
+
     } catch (error) {
       console.log(error);
     }
@@ -119,6 +138,14 @@ function Display() {
     </div>
   ) : null
 }
+</>\
+<>
+    {
+        co2Alert ?
+      <div className='alert'>
+        <h2>High Gas Level Detected!!</h2>
+    </div> : ""
+    }
 </>
 
      <div className='main'>
@@ -126,7 +153,7 @@ function Display() {
          <div className="rate">
            <div>
              <span>HUMIDITY</span>
-             <h1>{hum}%</h1>
+             <h1>{hum + 30}%</h1>
            </div>
          </div>
          <div className="temp">
@@ -155,8 +182,10 @@ function Display() {
              <button>{data.o3}</button>
              <span>So2</span>
              <button>{data.so2}</button>
+             <span>CO2</span>
+             <button>{Co2.toFixed(2)}</button>
              <button onClick={handlePrediction} style={{height:'100px',backgroundColor:'green',border:'none',height:'30px',color:'white'}}>Check Now</button>
-             <button onClick={handlePredictionDetails} style={{height:'100px',backgroundColor:'yellow',border:'none',height:'30px'}}>Predict</button>
+             <button onClick={handlePrediction} style={{height:'100px',backgroundColor:'yellow',border:'none',height:'30px'}}>Predict</button>
 
            </div> : null
          }
