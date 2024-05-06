@@ -17,7 +17,7 @@ function Display() {
   
   useEffect(() => {
   
-    
+    getDatafromDB();
     const fetchDataInterval = setInterval(() => {
       getDatafromDB();
     
@@ -38,31 +38,34 @@ function Display() {
 
   const getDatafromDB = () => {
     try {
-      
-      
-      dataRef.ref().child('test').on('value', (data) => {
-        const getData = Object.values(data.val());
-        console.log(getData,"getData")
-        setHum(getData[0]);
-        setTemp(getData[2]);
-        setVoc(getData[4]);
-        setCo2(getData[4]/10)
-        setCo(getData[1]);
-        setNh3(getData[3]);
-        //demo data to change C02 value change
-        if(Co2>0.3){
-          console.log("alert")
-            setCo2Alert(true)
-          }else{
-          console.log(" no alert")
-            setCo2Alert(false)
+      dataRef.ref().child('test').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const getData = Object.values(data);
+          console.log(getData, "getData...");
+          setHum(getData[0]);
+          setTemp(getData[2]);
+          setVoc(getData[4]);
+          setCo2(getData[4] / 10);
+          setCo(getData[1]);
+          setNh3(getData[3]);
+          //demo data to change C02 value change
+          if (Co2 > 0.3) {
+            console.log("alert");
+            setCo2Alert(true);
+          } else {
+            console.log(" no alert");
+            setCo2Alert(false);
           }
+        } else {
+          console.log("No data available in the database.");
+        }
       });
-
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching data from Firebase:", error);
     }
   };
+
 
   const calculateAQI = (concentration, pollutant) => {
     // Placeholder implementation, replace with actual AQI calculation formulas
@@ -185,7 +188,7 @@ function Display() {
              <span>CO2</span>
              <button>{Co2.toFixed(2)}</button>
              <button onClick={handlePrediction} style={{height:'100px',backgroundColor:'green',border:'none',height:'30px',color:'white'}}>Check Now</button>
-             <button onClick={handlePrediction} style={{height:'100px',backgroundColor:'yellow',border:'none',height:'30px'}}>Predict</button>
+             <button onClick={handlePredictionDetails} style={{height:'100px',backgroundColor:'yellow',border:'none',height:'30px'}}>Predict</button>
 
            </div> : null
          }
